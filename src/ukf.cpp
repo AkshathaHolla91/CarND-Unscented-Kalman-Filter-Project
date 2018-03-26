@@ -90,7 +90,7 @@ void UKF::ProcessMeasurement(MeasurementPackage meas_package) {
       float px=rho*cos(phi);
       float py=rho*sin(phi);
 
-      x_<<px, py,rho_dot, 0, 0;
+      x_<<px, py,0, 0, 0;
       P_<< 1, 0, 0, 0, 0,
           0, 1, 0, 0, 0,
           0, 0, 1, 0, 0,
