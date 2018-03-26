@@ -15,7 +15,7 @@ using std::vector;
 UKF::UKF() {
   is_initialized_ = false;
   // if this is false, laser measurements will be ignored (except during init)
-  use_laser_ = false;
+  use_laser_ = true;
 
   // if this is false, radar measurements will be ignored (except during init)
   use_radar_ = true;
@@ -233,6 +233,64 @@ void UKF::UpdateLidar(MeasurementPackage meas_package) {
 
   You'll also need to calculate the lidar NIS.
   */
+   Tools tools;
+  int n_z=2;
+  MatrixXd Zsig=MatrixXd(n_z, 2*n_aug_+1);
+
+  for(int i=0;i<2*n_aug_+1;i++){
+    double px=Xsig_pred_(0,i);
+    double py=Xsig_pred_(1,i);
+    
+    Zsig(0,i)=px;
+    Zsig(1,i)=py;
+    
+  }
+ 
+  //mean predicted measurement
+  VectorXd z_pred=VectorXd(n_z);
+  z_pred.fill(0);
+  for(int i=0;i<2*n_aug_+1;i++){
+    z_pred+=weights_(i)*Zsig.col(i);
+  }
+ //innovation covariance matrix S
+ 
+  MatrixXd S=MatrixXd(n_z,n_z);
+  S.fill(0);
+  for(int i=0;i<2*n_aug_+1;i++){
+    VectorXd z_diff=Zsig.col(i)-z_pred;
+    S+=weights_(i)*z_diff*z_diff.transpose();
+  }
+  MatrixXd R=MatrixXd(n_z,n_z);
+  R << std_laspx_*std_laspx_, 0,
+      0, std_laspy_*std_laspy_;
+  S+=R;
+//create vector for incoming radar measurement
+VectorXd z=VectorXd(n_z);
+z(0)=meas_package.raw_measurements_(0);
+z(1)=meas_package.raw_measurements_(1);
+
+
+//create matrix for cross correlation Tc
+MatrixXd tc=MatrixXd(n_x_,n_z);
+tc.fill(0);
+for(int i=0;i<2*n_aug_+1;i++){
+  VectorXd z_diff=Zsig.col(i)-z_pred;
+  
+
+  VectorXd x_diff=Xsig_pred_.col(i)-x_;
+  
+
+  tc+=weights_(i)*x_diff*z_diff.transpose();
+}
+
+MatrixXd K=tc*S.inverse();
+
+VectorXd y=z-z_pred;
+
+
+x_+=K*y;
+P_-=K*S*K.transpose();
+  
 }
 
 /**
