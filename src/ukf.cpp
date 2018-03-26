@@ -295,7 +295,7 @@ z(2)=meas_package.raw_measurements_(2);
 //create matrix for cross correlation Tc
 MatrixXd tc=MatrixXd(n_x_,n_z);
 tc.fill(0);
-for(int i=0;i<2*n_aug+1;i++){
+for(int i=0;i<2*n_aug_+1;i++){
   VectorXd z_diff=Zsig.col(i)-z_pred;
   z_diff(1)=tools.NormalizeAngle(z_diff(1));
 
