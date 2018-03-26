@@ -15,7 +15,7 @@ using std::vector;
 UKF::UKF() {
   is_initialized_ = false;
   // if this is false, laser measurements will be ignored (except during init)
-  use_laser_ = true;
+  use_laser_ = false;
 
   // if this is false, radar measurements will be ignored (except during init)
   use_radar_ = true;
@@ -120,10 +120,10 @@ void UKF::ProcessMeasurement(MeasurementPackage meas_package) {
 
   Prediction(delta_t);
 
-  if(meas_package.sensor_type_==MeasurementPackage::RADAR){
+  if(use_radar_ && meas_package.sensor_type_==MeasurementPackage::RADAR){
     UpdateRadar(meas_package);
   }
-  else if(meas_package.sensor_type_==MeasurementPackage::LASER){
+  else if(use_laser_ && meas_package.sensor_type_==MeasurementPackage::LASER){
     UpdateLidar(meas_package);
   }
 
@@ -248,6 +248,7 @@ void UKF::UpdateRadar(MeasurementPackage meas_package) {
 
   You'll also need to calculate the radar NIS.
   */
+  Tools tools;
   int n_z=3;
   MatrixXd Zsig=MatrixXd(n_z, 2*n_aug_+1);
 
@@ -272,7 +273,7 @@ void UKF::UpdateRadar(MeasurementPackage meas_package) {
     z_pred+=weights_(i)*Zsig.col(i);
   }
  //innovation covariance matrix S
- Tools tools;
+ 
   MatrixXd S=MatrixXd(n_z,n_z);
   S.fill(0);
   for(int i=0;i<2*n_aug_+1;i++){
@@ -285,6 +286,30 @@ void UKF::UpdateRadar(MeasurementPackage meas_package) {
       0, std_radphi_*std_radphi_, 0,
       0, 0, std_radrd_*std_radrd_;
   S+=R;
+//create vector for incoming radar measurement
+VectorXd z=VectorXd(n_z);
+z(0)=meas_package.raw_measurements_(0);
+z(1)=meas_package.raw_measurements_(1);
+z(2)=meas_package.raw_measurements_(2);
 
+//create matrix for cross correlation Tc
+MatrixXd tc=MatrixXd(n_x_,n_z);
+tc.fill(0);
+for(int i=0;i<2*n_aug+1;i++){
+  VectorXd z_diff=Zsig.col(i)-z_pred;
+  z_diff(1)=tools.NormalizeAngle(z_diff(1));
 
+  VectorXd x_diff=Xsig_pred_.col(i)-x_;
+  x_diff(3)=tools.NormalizeAngle(x_diff(3));
+
+  tc+=weights_(i)*x_diff*z_diff.transpose();
+}
+
+MatrixXd K=tc*S.inverse();
+
+VectorXd y=z-z_pred;
+y(1)=tools.NormalizeAngle(y(1));
+
+x_+=K*y;
+P_-=K*S*K.transpose();
 }
