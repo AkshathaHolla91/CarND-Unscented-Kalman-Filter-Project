@@ -196,8 +196,28 @@ void UKF::Prediction(double delta_t) {
     Xsig_pred_(4,i)=yawd_pred;
 
   }
+  double weights_n=0.5/(lambda_+n_aug_);
+  weights_.fill(weights_n);
+  double weights_0=lambda_/(lambda_+n_aug_);
+  weights_(0)=weights_0;
+
+  x_.fill(0.0);
+  for(int i=0;i<2*n_aug_+1;i++){
+    x_+=weights_(i)*Xsig_pred_.col(i);
+  }
+
+  P_.fill(0.0);
+  Tools tools;
+  for(int i=0;i<2*n_aug_+1;i++){
+    VectorXd x_diff=Xsig_pred_.col(i)-x_;
+    x_diff(3)=tools.NormalizeAngle(x_diff(3));
+    P_+=weights_(i)*x_diff*x_diff.transpose();
+  }
+
 
 }
+
+
 
 /**
  * Updates the state and the state covariance matrix using a laser measurement.
