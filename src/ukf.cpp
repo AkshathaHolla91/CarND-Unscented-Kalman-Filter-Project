@@ -91,8 +91,8 @@ void UKF::ProcessMeasurement(MeasurementPackage meas_package) {
       float py=rho*sin(phi);
 
       x_<<px, py,0, 0, 0;
-      P_<< 1, 0, 0, 0, 0,
-          0, 1, 0, 0, 0,
+      P_<< std_radr_*std_radr_, 0, 0, 0, 0,
+          0, std_radr_*std_radr_, 0, 0, 0,
           0, 0, 1, 0, 0,
           0, 0, 0, 1, 0,
           0, 0, 0, 0, 1;
