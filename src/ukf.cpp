@@ -248,4 +248,42 @@ void UKF::UpdateRadar(MeasurementPackage meas_package) {
 
   You'll also need to calculate the radar NIS.
   */
+  MatrixXd Zsig=MatrixXd(n_z, 2*n_aug_+1);
+
+  for(int i=0;i<2*n_aug_+1;i++){
+    double px=Xsig_pred_(0,i);
+    double py=Xsig_pred_(1,i);
+    double v=Xsig_pred_(2,i);
+    double yaw=Xsig_pred_(3,i);
+
+    double vx=v*cos(yaw);
+    double vy=v*sin(yam);
+     // measurement model
+    Zsig(0,i)=sqrt(px*px+py*py);
+    Zsig(1,i)=atan2(py,px);
+    Zsig(2,i)=(px*vx+py*vy)/Zsig(0,i);
+  }
+  int n_z=3;
+  //mean predicted measurement
+  VectorXd z_pred=VectorXd(n_z);
+  z_pred.fill(0);
+  for(int i=0;i<2*n_aug_+1;i++){
+    z_pred+=weights_(i)*Zsig.col(i);
+  }
+ //innovation covariance matrix S
+ Tools tools;
+  MatrixXd S=MatrixXd(n_z,n_z);
+  S.fill(0);
+  for(int i=0;i<2*n_aug_+1;i++){
+    VectorXd z_diff=Zsig.col(i)-z_pred;
+    z_diff(1)=NormalizeAngle(z_diff(1));
+    S+=weights_(i)*z_diff*z_diff.transpose();
+  }
+  MatrixXd R=MatrixXd(n_z,n_z);
+  R << std_radr_*std_radr_, 0, 0,
+      0, std_radphi_*std_radphi_, 0,
+      0, 0, std_radrd_*std_radrd_;
+  S+=R;
+
+
 }
