@@ -103,8 +103,8 @@ void UKF::ProcessMeasurement(MeasurementPackage meas_package) {
       float px=meas_package.raw_measurements_(0);
       float py=meas_package.raw_measurements_(1);
       x_<<px, py, 0 , 0, 0;
-      P_<< 1, 0, 0, 0, 0,
-          0, 1, 0, 0, 0,
+      P_<<std_laspx_, 0, 0, 0, 0,
+          0, std_laspy_, 0, 0, 0,
           0, 0, 1, 0, 0,
           0, 0, 0, 1, 0,
           0, 0, 0, 0, 1;
