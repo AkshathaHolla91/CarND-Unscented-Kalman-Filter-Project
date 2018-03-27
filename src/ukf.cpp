@@ -27,10 +27,10 @@ UKF::UKF() {
   P_ = MatrixXd(5, 5);
 
   // Process noise standard deviation longitudinal acceleration in m/s^2
-  std_a_ = 1;
+  std_a_ = 0.8;
 
   // Process noise standard deviation yaw acceleration in rad/s^2
-  std_yawdd_ = 0.3;
+  std_yawdd_ = 0.5;
   
   //DO NOT MODIFY measurement noise values below these are provided by the sensor manufacturer.
   // Laser measurement noise standard deviation position1 in m
@@ -64,7 +64,8 @@ UKF::UKF() {
   
   Xsig_pred_ = MatrixXd(n_x_, 2 * n_aug_ + 1);
   weights_ = VectorXd(2*n_aug_+1);
-
+  NIS_radar=0.0;
+  NIS_lidar=0.0;
 
 }
 
@@ -286,7 +287,7 @@ for(int i=0;i<2*n_aug_+1;i++){
 MatrixXd K=tc*S.inverse();
 
 VectorXd y=z-z_pred;
-
+NIS_lidar=y.transpose()*S.inverse()*y;
 
 x_+=K*y;
 P_-=K*S*K.transpose();
@@ -367,7 +368,7 @@ MatrixXd K=tc*S.inverse();
 
 VectorXd y=z-z_pred;
 y(1)=tools.NormalizeAngle(y(1));
-
+NIS_radar=y.transpose()*S.inverse()*y;
 x_+=K*y;
 P_-=K*S*K.transpose();
 }
