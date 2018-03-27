@@ -32,6 +32,8 @@ VectorXd Tools::CalculateRMSE(const vector<VectorXd> &estimations,
   rmse=rmse.array().sqrt();
   return rmse;
 }
+
+//Normalizing the given angle between -pi and pi
 double Tools::NormalizeAngle(double phi){
   return atan2( sin(phi),cos(phi));
  }
