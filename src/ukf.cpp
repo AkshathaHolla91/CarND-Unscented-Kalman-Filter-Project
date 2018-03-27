@@ -288,7 +288,7 @@ MatrixXd K=tc*S.inverse();
 
 VectorXd y=z-z_pred;
 NIS_lidar=y.transpose()*S.inverse()*y;
-
+cout<< "NIS Lidar" << NIS_lidar <<endl;
 x_+=K*y;
 P_-=K*S*K.transpose();
   
@@ -369,6 +369,7 @@ MatrixXd K=tc*S.inverse();
 VectorXd y=z-z_pred;
 y(1)=tools.NormalizeAngle(y(1));
 NIS_radar=y.transpose()*S.inverse()*y;
+cout<< "NIS Radar" << NIS_radar <<endl;
 x_+=K*y;
 P_-=K*S*K.transpose();
 }
